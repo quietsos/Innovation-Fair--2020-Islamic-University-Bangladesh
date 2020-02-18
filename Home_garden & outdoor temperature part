@@ -1,0 +1,110 @@
+#define CAYENNE_PRINT Serial
+#include<CayenneMQTTESP8266.h>
+char ssid[] = "ICE_Innovation_Lab";
+char wifiPassword[] = "beinnovative#";
+
+char username[] = "6d9b9800-c3c4-11e8-9747-bb363659b178";
+char password[] = "860d76e70b2b9f9502cb41568129a1ff99416a2e";
+char clientID[] = "b0d6c2f0-4e7b-11ea-ba7c-716e7f5ba423";
+
+#define rainPin D0
+#define soilPin A0
+#define dhtPin D2
+#define pumpPin D1
+
+#include<DHT.h>
+#define DHTTYPE DHT11
+DHT dht(dhtPin,DHTTYPE);
+int localTemp = 0;
+int localHum = 0;
+int rainDrop;
+int soilMoisture;
+
+
+
+
+void setup() {
+
+    Serial.begin(9600);
+    Cayenne.begin(username,password,clientID,ssid,wifiPassword);
+    pinMode(pumpPin,OUTPUT);
+    pinMode(rainPin,INPUT);
+    pinMode(soilPin,INPUT);
+}
+
+void loop() {
+  
+  Cayenne.loop();
+  getDht();
+  getRain();
+  getMoisture();
+}
+
+void getDht(void){
+  float temp = localTemp;
+  float hum = localHum;
+  localTemp = dht.readTemperature();
+  localHum = dht.readHumidity();
+  Serial.print("Temperature: ");
+  Serial.println(localTemp);
+  Serial.print("Humidity: ");
+  Serial.println(localHum);
+  delay(500);                   
+}
+
+void getRain(void){
+
+  rainDrop = digitalRead(rainPin);
+    if(rainDrop == 1)
+  {
+    rainDrop == 0;
+  }
+
+  else 
+  {
+    rainDrop == 1;
+  }
+  Serial.print("Raining: ");
+  Serial.println(rainDrop);
+  delay(500);
+  
+}
+
+void getMoisture(void){
+
+  soilMoisture = analogRead(soilPin);
+  Serial.print("Soil moisture:");
+  Serial.println(soilMoisture);
+  delay(500);
+  
+}
+
+CAYENNE_OUT_DEFAULT(){
+  Cayenne.virtualWrite(1,soilMoisture);
+  Cayenne.virtualWrite(2,rainDrop);
+  Cayenne.virtualWrite(3,localTemp);
+  Cayenne.virtualWrite(4,localHum);
+}
+
+CAYENNE_IN(5)
+{
+   int currentValue=getValue.asInt();
+   if(currentValue==1)
+   {
+     digitalWrite(pumpPin,HIGH);
+   }
+   else
+   {
+     digitalWrite(pumpPin,LOW); 
+   }
+}
+
+void serialPrint(void)
+{
+  Serial.print("Temperature: ");
+  Serial.println(localTemp);
+  Serial.print("Humidity: ");
+  Serial.println(localHum);
+  
+  delay(500);
+}
