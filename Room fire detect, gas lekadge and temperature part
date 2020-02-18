@@ -1,0 +1,75 @@
+#define CAYENNE_PRINT Serial
+#include<CayenneMQTTESP8266.h>
+char ssid[] = "ICE_Innovation_Lab";
+char wifiPassword[] = "beinnovative#";
+
+char username[] = "6d9b9800-c3c4-11e8-9747-bb363659b178";
+char password[] = "860d76e70b2b9f9502cb41568129a1ff99416a2e";
+char clientID[] = "8693ab30-9ce1-11e9-9636-f9904f7b864b";
+
+#define flamePin D0
+#define gasPin D1
+#define dhtPin D2
+
+#include<DHT.h>
+#define DHTTYPE DHT11
+DHT dht(dhtPin,DHTTYPE);
+int localTemp = 0;
+int localHum = 0;
+int flameValue;
+int gasValue;
+
+
+
+void setup() {
+
+    Serial.begin(9600);
+    Cayenne.begin(username,password,clientID,ssid,wifiPassword);
+    pinMode(flamePin,INPUT);
+    pinMode(gasPin,INPUT);
+}
+
+void loop() {
+  
+  Cayenne.loop();
+  getDht();
+  getFlame();
+  getGas();
+}
+
+void getDht(void){
+  float temp = localTemp;
+  float hum = localHum;
+  localTemp = dht.readTemperature();
+  localHum = dht.readHumidity();
+  Serial.print("Temperature: ");
+  Serial.println(localTemp);
+  Serial.print("Humidity: ");
+  Serial.println(localHum);
+  delay(500);                   
+}
+
+void getFlame(void){
+
+  flameValue = digitalRead(flamePin);
+  Serial.print("Fire detect : ");
+  Serial.println(flameValue);
+  delay(500);
+  
+}
+
+void getGas(void){
+
+  gasValue = digitalRead(gasPin);
+  Serial.print("Gas detect:");
+  Serial.println(gasValue);
+  delay(500);
+  
+}
+
+CAYENNE_OUT_DEFAULT(){
+  Cayenne.virtualWrite(1,flameValue);
+  Cayenne.virtualWrite(2,gasValue);
+  Cayenne.virtualWrite(3,localTemp);
+  Cayenne.virtualWrite(4,localHum);
+}
