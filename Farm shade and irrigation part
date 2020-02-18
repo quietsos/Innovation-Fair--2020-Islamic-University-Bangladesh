@@ -1,0 +1,95 @@
+#define CAYENNE_PRINT Serial  // Comment this out to disable prints and save space
+#include<CayenneMQTTESP8266.h>
+#include <Servo.h>
+
+char ssid[] = "ICE_Innovation_Lab";
+char wifiPassword[] = "beinnovative#";
+
+// Cayenne authentication info. This should be obtained from the Cayenne Dashboard.
+char username[] = "6d9b9800-c3c4-11e8-9747-bb363659b178";
+char password[] = "860d76e70b2b9f9502cb41568129a1ff99416a2e";
+char clientID[] = "0446cd40-500c-11ea-8221-599f77add412";
+
+#define VIRTUAL_CHANNEL 1
+//#define servo_1 4  // D2 pin of nodemcu
+#define servo_2 5  // D1 pin of nodemcu
+
+//Servo myservo_1;
+Servo myservo_2;
+
+#define moisturePin A0
+#define pumpPin D7
+int soilMoisture;
+int moisture;
+
+#define dhtPin D2
+#include<DHT.h>
+#define DHTTYPE DHT11
+DHT dht(dhtPin, DHTTYPE);
+int localTemp = 0;
+
+void setup()
+{
+  Serial.begin(9600);
+  Cayenne.begin(username, password, clientID, ssid, wifiPassword);
+//  myservo_1.attach(servo_1);
+  myservo_2.attach(servo_2);
+  pinMode(moisturePin, INPUT);
+  pinMode(pumpPin, OUTPUT);
+}
+
+void loop()
+{
+  Cayenne.loop();
+  getMoisture();
+  getDht();
+}
+
+void getDht(void) {
+  float temp = localTemp;
+  localTemp = dht.readTemperature();
+  Serial.print("Temperature: ");
+  Serial.println(localTemp);
+  delay(500);
+}
+
+void getMoisture(void)
+{
+  soilMoisture = analogRead(moisturePin);
+  moisture = 1024 - soilMoisture;
+  //  percentMoisture = 100 - ((soilMoisture/1024)*100);
+
+  Serial.print("Soil moisture: ");
+  Serial.println(soilMoisture , moisture);
+  delay(500);
+}
+
+CAYENNE_OUT_DEFAULT()
+{
+  Cayenne.virtualWrite(2, moisture);
+  Cayenne.virtualWrite(4, localTemp);
+
+}
+CAYENNE_IN(3)
+{
+  int currentValue = getValue.asInt();
+  if (currentValue == 0)
+  {
+    digitalWrite(pumpPin, HIGH);
+
+  }
+  else
+  {
+    digitalWrite(pumpPin, LOW);
+  }
+}
+// This function is called when data is sent from Cayenne.
+CAYENNE_IN(VIRTUAL_CHANNEL)
+{
+
+  // Determine angle to set the servo.
+  int position = getValue.asDouble() * 180;
+  // Move the servo to the specified position.
+//  myservo_1.write(position);
+  myservo_2.write(position);
+}
