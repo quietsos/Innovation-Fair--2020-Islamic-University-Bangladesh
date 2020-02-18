@@ -1,0 +1,88 @@
+// Md Shohanuzzaman //
+// Room's light & fan automation //
+// Water tank monitoring and pump controling //
+
+#define light D0
+#define fan D1
+#define waterpump D2
+#define trigPin D3
+#define echoPin D4
+#define CAYENNE_PRINT Serial
+#include <CayenneMQTTESP8266.h>
+char ssid[] = "ICE_Innovation_Lab";
+char wifiPassword[] = "beinnovative#";
+char username[] = "6d9b9800-c3c4-11e8-9747-bb363659b178";
+char password[] = "860d76e70b2b9f9502cb41568129a1ff99416a2e";
+char clientID[] = "c9b9c200-9b1a-11e9-9636-f9904f7b864b";
+int duration, distance;
+void setup() {
+  Serial.begin(9600);
+  Cayenne.begin(username, password, clientID, ssid, wifiPassword);
+  pinMode(light, OUTPUT);
+  pinMode(fan, OUTPUT);
+  pinMode(waterpump, OUTPUT);
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+}
+void loop() {
+  Cayenne.loop();
+  getDistance();
+  delay(1000);
+}
+void getDistance(){
+  // Clears the trigPin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  
+  // Calculating the distance
+  int distance= duration*0.034/2;
+  // Prints the distance on the Serial Monitor
+  Serial.print("Distance: ");
+  Serial.println(distance);
+}
+CAYENNE_OUT_DEFAULT()
+{
+    Cayenne.virtualWrite(4,distance);
+}
+CAYENNE_IN(1)
+{
+   int currentValue=getValue.asInt();
+   if(currentValue==1)
+   {
+     digitalWrite(light,HIGH);
+   }
+   else
+   {
+     digitalWrite(light,LOW); 
+   }
+}
+CAYENNE_IN(2)
+{
+   int currentValue=getValue.asInt();
+   if(currentValue==1)
+   {
+     digitalWrite(fan,HIGH);
+   }
+   if(currentValue==0)
+   {
+     digitalWrite(fan,LOW); 
+   }
+}
+CAYENNE_IN(3)
+{
+   int currentValue=getValue.asInt();
+   if(currentValue==1)
+   {
+     digitalWrite(waterpump,HIGH);
+   }
+   if(currentValue==0)
+   {
+     digitalWrite(waterpump,LOW); 
+   }
+}
