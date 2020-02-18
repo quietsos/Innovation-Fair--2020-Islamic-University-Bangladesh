@@ -1,0 +1,80 @@
+//Servo Header File
+#include <Servo.h>
+
+//Servo Object.
+Servo servo;
+int trig = 9;
+int echo = 10;
+float angle =60;
+
+int dur;
+int dis;
+void setup() {
+
+  Serial.begin(9600);
+  pinMode(trig,OUTPUT);
+  pinMode(echo,INPUT);
+//  Servo pin Setup.
+  servo.attach(11);
+  servo.write(angle);
+}
+
+
+void loop()
+{
+  
+
+  digitalWrite(trig,LOW);
+  delayMicroseconds(2);
+  digitalWrite(trig,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig,LOW);
+  dur = pulseIn(echo,HIGH);
+
+
+  dis = (dur*0.034)/2;
+  Serial.println(dis);
+  
+  
+  if(dis <= 60)
+    { 
+      for(angle = 60;angle<=120;angle=angle+0.3)
+      {
+         servo.write(angle);
+        delay(4);
+      }
+
+        
+      for(angle = 120; angle>=60; angle = angle-0.3)
+      {
+        servo.write(angle);
+        delay(4);
+      }
+
+      for(angle = 60;angle<=120;angle=angle+0.3)
+      {
+         servo.write(angle);
+        delay(4);
+      }
+
+       for(angle = 120; angle>=60; angle = angle-0.3)
+      {
+        servo.write(angle);
+        delay(4);
+      }
+
+            for(angle = 60;angle<=120;angle=angle+0.3)
+      {
+         servo.write(angle);
+        delay(4);
+      }
+
+       for(angle = 120; angle>=60; angle = angle-0.3)
+      {
+        servo.write(angle);
+        delay(4);
+      }
+    }
+       delay(1000);
+
+}
